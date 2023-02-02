@@ -8,10 +8,6 @@ use App\Models\Comment;
 
 class CommentsController extends Controller
 {
-    public function index()
-    {
-        return Comment::all();
-    }
     public function store(CommentRequest $request, $galleryId)
     {
         $newComment = new Comment();

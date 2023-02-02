@@ -16,6 +16,8 @@ Route::group([
     Route::post('login', 'AuthController@login');
     Route::post('logout', 'AuthController@logout');
     Route::post('register', 'AuthController@register');
+    Route::post('refresh', 'AuthController@refresh');
+    Route::get('me', 'AuthController@getActiveUser');
 
     Route::get('galleries', 'GalleriesController@index');
     Route::get('galleries/{id}', 'GalleriesController@show');
@@ -27,6 +29,6 @@ Route::group([
     Route::post('/galleries/{id}/comments', 'CommentsController@store');
     Route::delete('/comments/{id}', 'CommentsController@destroy');
 
-    Route::get('/users', 'UserController@index');
     Route::get('/user/{id}', 'UserController@show');
+    Route::get('/users', 'UserController@index');
 });

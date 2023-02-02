@@ -22,7 +22,6 @@ class GalleriesController extends Controller
     public function show($id)
     {
         $gallery = Gallery::with(['images', 'user', 'comments', 'comments.user'])->findOrFail($id);
-
         return $gallery;
     }
 
@@ -40,13 +39,13 @@ class GalleriesController extends Controller
             $image->gallery_id = $gallery->id;
             $image->save();
         }
-
         return $this->show($gallery->id);
     }
 
     public function update(GalleryRequest $request, $id)
     {
-        $gallery = Gallery::find($id);
+        $gallery = Gallery::findOrFail($id);
+        $gallery->update($request->all());
         $gallery->title = $request->title;
         $gallery->description = $request->description;
         $gallery->user_id = optional(Auth::user())->id;
@@ -59,7 +58,6 @@ class GalleriesController extends Controller
             $image->gallery_id = $gallery->id;
             $image->save();
         }
-
         return $this->show($gallery->id);
     }
 
@@ -71,5 +69,10 @@ class GalleriesController extends Controller
         return response()->json([
             'message' => 'Deleted'
         ]);
+    }
+
+    public function getUser()
+    {
+        return optional(Auth::user())->id;
     }
 }

@@ -3,16 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+
 
 class AuthController extends Controller
 {
-
     public function __construct()
     {
         $this->middleware('auth:api', ['except' => ['login', 'register']]);
@@ -22,26 +21,21 @@ class AuthController extends Controller
     {
         $validatedData = $request->validated();
         $user = User::create([
-            'first_name' => $validatedData["first_name"],
-            'last_name' => $validatedData["last_name"],
-            'email' => $validatedData["email"],
-            'password' => Hash::make($validatedData['password']),
-        ]);
+            "first_name" => $validatedData["first_name"],
+            "last_name" => $validatedData["last_name"],
+            "email" => $validatedData["email"],
+            "password" => Hash::make($validatedData["password"]),
 
+        ]);
         $token = auth()->login($user);
 
-        $credentials = $request->only(['email', 'password']);
-
-        if (!$token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'unauthorized'], 401);
-        }
-
-        return response()->json(
-            array_merge(
-                $this->responseWithToken($token),
-                ['user' => $user]
-            )
-        );
+        return response()->json([
+            "status" => "success",
+            "user" => $user,
+            "authorization" => [
+                "token" => $token
+            ]
+        ]);
     }
 
     public function login(LoginRequest $request)
@@ -55,27 +49,47 @@ class AuthController extends Controller
 
         $token = Auth::attempt($credentials);
 
-        if (!$token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'unauthorized'], 401);
+        if (!$token) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Unauthorized"
+            ], 401);
         }
 
-        return response()->json($this->responseWithToken($token));
+        return response()->json(
+            [
+                "status" => "success",
+                "user" => auth()->user(),
+                "authorization" => [
+                    "token" => $token,
+                ]
+            ]
+        );
+    }
+
+    public function refresh(Request $request)
+    {
+        return response()->json([
+            "status" => "success",
+            "user" => Auth::user(),
+            "authorization" => [
+                "token" => Auth::refresh()
+            ]
+        ]);
     }
 
     public function logout(Request $request)
     {
         Auth::logout();
         return response()->json([
-            "status" => "successfully logged out",
+            "status" => "success",
         ]);
     }
 
-    protected function responseWithToken($token): array
+    public function getActiveUser()
     {
-        return [
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 5760
-        ];
+        $activeUser = Auth::user();
+
+        return response()->json($activeUser);
     }
 }
